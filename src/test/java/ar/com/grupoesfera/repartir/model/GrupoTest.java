@@ -62,4 +62,12 @@ class GrupoTest {
 
         assertThat(grupo.estaFormado()).isFalse();
     }
+
+    @Test
+    void noPermiteSaldoNegativo() {
+        Grupo grupo = new Grupo();
+        assertThatThrownBy(() -> grupo.setTotal(new java.math.BigDecimal("-1.00")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("El total no puede ser negativo");
+    }
 }
