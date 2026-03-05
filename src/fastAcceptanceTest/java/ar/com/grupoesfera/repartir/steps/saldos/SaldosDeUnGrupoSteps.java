@@ -2,6 +2,7 @@ package ar.com.grupoesfera.repartir.steps.saldos;
 
 import ar.com.grupoesfera.repartir.model.Grupo;
 import ar.com.grupoesfera.repartir.steps.FastCucumberSteps;
+import io.cucumber.java.Before;
 import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
@@ -16,7 +17,12 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class SaldosDeUnGrupoSteps extends FastCucumberSteps {
 
     private Grupo grupo;
-    private String error;
+    private String error = null;
+
+    @Before
+    public void setUp() {
+        error = null;
+    }
 
     @Dado("un grupo con saldo {int}")
     public void unGrupoConSaldo(int saldo) {
@@ -32,9 +38,12 @@ public class SaldosDeUnGrupoSteps extends FastCucumberSteps {
         grupo.setTotal( BigDecimal.valueOf(saldo));
     }
 
-    @Cuando("el usuario agrega un gasto de {int}")
+    @Cuando("el usuario agrega un gasto de {int} al grupo")
     public void elUsuarioAgregaUnGastoDe(int monto) {
         BigDecimal totalGrupo = grupo.getTotal();
+        if (totalGrupo == null) {
+            totalGrupo = BigDecimal.ZERO;
+        }
         try {
             grupo.setTotal(totalGrupo.add(BigDecimal.valueOf(monto)));
         } catch (IllegalArgumentException e){
@@ -45,13 +54,23 @@ public class SaldosDeUnGrupoSteps extends FastCucumberSteps {
     @Entonces("el gasto total del grupo será {double}")
     public void elGastoTotalDelGrupoSera(double totalEsperado) {
         BigDecimal totalGrupo = grupo.getTotal();
+        assertThat(totalGrupo.compareTo(BigDecimal.valueOf(totalEsperado)) == 0).isTrue();
+    }
 
-        assertThat(totalGrupo.equals(BigDecimal.valueOf(totalEsperado))).isTrue();
+    @Entonces("el gasto total será un numero positivo")
+    public void elGastoTotalSeraUnNumeroPositivo() {
+        BigDecimal totalGrupo = grupo.getTotal();
+        assertThat(totalGrupo.compareTo(BigDecimal.ZERO) > 0).isTrue();
+    }
 
+    @Entonces("el gasto total será cero")
+    public void elGastoTotalSeraCero() {
+        BigDecimal totalGrupo = grupo.getTotal();
+        assertThat(totalGrupo.compareTo(BigDecimal.ZERO) == 0).isTrue();
     }
 
     @Entonces("resultará en un error con el mensaje {string}")
     public void resultaEnUnErrorConElMensaje(String mensajeEsperado) {
-        assertThat(error.equals(mensajeEsperado)).isTrue();
+        assertThat(error).isNotNull().isEqualTo(mensajeEsperado);
     }
 }
